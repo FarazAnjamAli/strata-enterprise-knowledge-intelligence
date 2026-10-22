@@ -74,6 +74,12 @@ Open **http://localhost:3000** and sign in with the admin email and password the
 | **Models & cost** | **Sign in** |
 | <img src="docs/assets/screen-models.png" width="440"> | <img src="docs/assets/screen-login.png" width="440"> |
 
+**More:** the full set of 14 screenshots (assistant, `/file` scoping, premium-tier approval, access approvals, admin people, audit log, system, settings) is in [`screenshots/`](screenshots/README.md).
+
+| Premium tier asks first | Cross-team access approvals |
+|---|---|
+| <img src="screenshots/07-premium-tier-approval.png" width="440"> | <img src="screenshots/09-access-approvals.png" width="440"> |
+
 ## Architecture
 
 ```mermaid
