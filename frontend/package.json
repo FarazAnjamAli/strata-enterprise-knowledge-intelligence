@@ -17,7 +17,7 @@
     "motion": "12.43.0",
     "next": "15.5.28",
     "react": "19.1.10",
-    "react-dom": "19.1.10",
+    "react-dom": "19.3.1",
     "react-markdown": "10.1.0",
     "remark-gfm": "4.0.1",
     "swr": "2.3.3"
@@ -26,7 +26,7 @@
     "@eslint/eslintrc": "3.3.1",
     "@types/node": "22.15.21",
     "@types/react": "19.1.6",
-    "@types/react-dom": "19.1.5",
+    "@types/react-dom": "19.3.0",
     "autoprefixer": "10.4.21",
     "eslint": "9.39.5",
     "eslint-config-next": "15.5.28",
