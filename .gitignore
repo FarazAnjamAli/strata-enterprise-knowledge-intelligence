@@ -1,0 +1,38 @@
+# secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+backend/celerybeat-schedule*
+
+# node / next
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+npm-debug.log*
+
+# data
+data/
+uploads/
+*.sqlite
+
+# os / editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/

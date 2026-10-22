@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-canvas font-sans text-ink;
+  }
+  ::selection {
+    background: #c6ff00;
+    color: #0a0a0a;
+  }
+  *:focus-visible {
+    outline: none;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cdcdc7 transparent;
+  }
+}
+
+@layer components {
+  /* Markdown answers */
+  .prose-strata {
+    @apply text-[15px] leading-[1.7] text-ink;
+  }
+  .prose-strata > * + * {
+    @apply mt-3;
+  }
+  .prose-strata h1,
+  .prose-strata h2,
+  .prose-strata h3 {
+    @apply mt-5 font-medium tracking-[-0.015em] text-ink;
+  }
+  .prose-strata h1 { @apply text-xl; }
+  .prose-strata h2 { @apply text-lg; }
+  .prose-strata h3 { @apply text-base; }
+  .prose-strata strong { @apply font-semibold text-ink; }
+  .prose-strata a { @apply underline decoration-lime decoration-2 underline-offset-2 hover:bg-lime; }
+  .prose-strata ul { @apply list-none space-y-1.5 pl-0; }
+  .prose-strata ul > li { @apply relative pl-5; }
+  .prose-strata ul > li::before {
+    content: "";
+    @apply absolute left-0.5 top-[0.72em] h-[5px] w-[5px] bg-ink;
+  }
+  .prose-strata ol { @apply list-decimal space-y-1.5 pl-5 marker:font-mono marker:text-xs marker:text-ink-2; }
+  .prose-strata code {
+    @apply rounded-xs border border-line bg-paper px-1 py-0.5 font-mono text-[13px] text-ink;
+  }
+  .prose-strata pre {
+    @apply overflow-x-auto rounded-sm border border-ink bg-ink p-4 font-mono text-[13px] text-white;
+  }
+  .prose-strata pre code { @apply border-0 bg-transparent p-0 text-white; }
+  .prose-strata blockquote { @apply border-l-2 border-lime pl-4 text-ink-2; }
+  .prose-strata table { @apply my-4 w-full border-collapse border border-line text-sm; }
+  .prose-strata thead { @apply bg-paper; }
+  .prose-strata th { @apply border-b border-line px-3 py-2 text-left font-mono text-[11px] font-normal uppercase tracking-wider text-ink-2; }
+  .prose-strata td { @apply border-b border-line px-3 py-2 tabular-nums; }
+  .prose-strata hr { @apply my-5 border-line; }
+
+  .grid-lines {
+    background-image: linear-gradient(to right, #ececea 1px, transparent 1px),
+      linear-gradient(to bottom, #ececea 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+}
+
+@layer components {
+  /* light sweep across primary buttons on hover */
+  .shine {
+    @apply relative isolate overflow-hidden;
+  }
+  .shine::after {
+    content: "";
+    @apply pointer-events-none absolute inset-y-0 left-0 w-1/3 opacity-0;
+    background: linear-gradient(90deg, transparent, rgba(198, 255, 0, 0.55), transparent);
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  .shine:hover::after {
+    @apply animate-shine opacity-100;
+  }
+  .shine-dark::after {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  }
+
+  /* hover lift with the lime offset shadow, used on cards */
+  .lift {
+    @apply transition-all duration-200 ease-out;
+  }
+  .lift:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 3px 3px 0 0 #c6ff00, 0 0 0 1px #0a0a0a;
+  }
+
+  .grid-fine {
+    background-image: linear-gradient(to right, #ececea 1px, transparent 1px),
+      linear-gradient(to bottom, #ececea 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .dots {
+    background-image: radial-gradient(#d9d9d4 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,137 @@
+# Strata - production stack.
+#
+#   cp .env.example .env        # then fill in the secrets (or run scripts/setup.ps1 / setup.sh)
+#   docker compose up -d --build
+#   docker compose --profile local-llm up -d   # also run Ollama in a container
+#
+# Only the web app is published (port 3000). The API, database, Redis and
+# workers stay on the internal network; the web app proxies /api to the API.
+
+name: strata
+
+x-backend: &backend
+  build:
+    context: ./backend
+  image: strata-backend:${STRATA_VERSION:-latest}
+  env_file: .env
+  environment:
+    DATABASE_URL: postgresql://${POSTGRES_USER:-strata}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-strata}
+    REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+    UPLOAD_DIR: /data/uploads
+  volumes:
+    - uploads:/data/uploads
+  extra_hosts:
+    # lets OLLAMA_URL=http://host.docker.internal:11434 reach a native Ollama
+    - "host.docker.internal:host-gateway"
+  networks: [internal]
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-strata}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-strata}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-strata} -d ${POSTGRES_DB:-strata}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}"]
+    volumes:
+      - redis_data:/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" --no-auth-warning ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    restart: unless-stopped
+
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    <<: *backend
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  worker:
+    <<: *backend
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=INFO", "--concurrency=${WORKER_CONCURRENCY:-2}"]
+    healthcheck:
+      disable: true
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  beat:
+    <<: *backend
+    command: ["celery", "-A", "app.workers.celery_app", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
+    healthcheck:
+      disable: true
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  web:
+    build:
+      context: ./frontend
+    image: strata-web:${STRATA_VERSION:-latest}
+    environment:
+      BACKEND_URL: http://api:8000
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    networks: [internal]
+    depends_on:
+      api: { condition: service_healthy }
+    restart: unless-stopped
+
+  # Tier 1 in a container. Skip this profile if Ollama runs natively on the
+  # host and set OLLAMA_URL=http://host.docker.internal:11434 instead.
+  ollama:
+    image: ollama/ollama:latest
+    profiles: [local-llm]
+    volumes:
+      - ollama_models:/root/.ollama
+    networks: [internal]
+    restart: unless-stopped
+    # GPU: uncomment on hosts with the NVIDIA container toolkit
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    profiles: [local-llm]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["sh", "-c", "sleep 3 && ollama pull ${OLLAMA_MODEL:-llama3.1:8b}"]
+    depends_on: [ollama]
+    networks: [internal]
+    restart: "no"
+
+networks:
+  internal:
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads:
+  ollama_models:

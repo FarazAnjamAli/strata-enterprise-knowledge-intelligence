@@ -1,0 +1,29 @@
+[project]
+name = "strata-backend"
+version = "2.0.0"
+description = "Strata - three-tier, on-prem-first RAG platform (API + workers)"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM"]
+ignore = [
+  "B008",  # FastAPI Depends() in defaults is idiomatic
+  "B904",  # explicit re-raise style is fine in handlers
+  "B905",  # zip(strict=) not needed where lengths are guaranteed
+  "S101",  # asserts in tests
+  "S105", "S106",  # token type names are not passwords
+  "S311",  # non-crypto random is fine where used
+  "SIM105",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "E402"]
+"migrations/*" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
